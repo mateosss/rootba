@@ -222,6 +222,7 @@ cmake ../../Pangolin "${COMMON_CMAKE_ARGS[@]}" \
     -DBUILD_TOOLS=OFF \
     -DBUILD_TESTS=OFF \
     -DBUILD_PANGOLIN_PYTHON=OFF \
+    -DBUILD_PANGOLIN_FFMPEG=OFF \
     -DBUILD_PANGOLIN_LIBOPENEXR=OFF
 # Note: Now we install Eigen and it provides a config module
 #    "-DEIGEN_INCLUDE_DIR=$EIGEN_DIR"
