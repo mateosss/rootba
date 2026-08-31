@@ -55,15 +55,15 @@ template <typename Scalar>
 void BalMapDisplay::update(const BalProblem<Scalar>& bal_problem) {
   int initial_size = signed_cast(frames_.size());
 
-  if (initial_size < bal_problem.num_cameras()) {
+  if (initial_size < bal_problem.num_keyframes()) {
     // create additional displays
-    frames_.reserve(bal_problem.num_cameras());
-    for (int i = initial_size; i < bal_problem.num_cameras(); ++i) {
+    frames_.reserve(bal_problem.num_keyframes());
+    for (int i = initial_size; i < bal_problem.num_keyframes(); ++i) {
       frames_.push_back(std::make_unique<BalFrameDisplay>(i));
     }
   } else {
     // (possibly) remove displays
-    frames_.resize(bal_problem.num_cameras());
+    frames_.resize(bal_problem.num_keyframes());
   }
 
   for (int i = 0; i < signed_cast(frames_.size()); ++i) {
@@ -101,9 +101,9 @@ BalFrameDisplay::BalFrameDisplay(FrameIdx frame_id) : frame_id_(frame_id) {}
 template <typename Scalar>
 void BalFrameDisplay::update(const BalProblem<Scalar>& bal_problem) {
   // update pose
-  T_w_c_ = bal_problem.cameras()
+  T_w_i_ = bal_problem.keyframes()
                .at(frame_id_)
-               .T_c_w.inverse()
+               .T_i_w.inverse()
                .template cast<double>();
 }
 
@@ -130,10 +130,10 @@ bool BalMapDisplay::update_buffers() {
 void BalFrameDisplay::draw_camera(bool selected,
                                   const BalMapDisplay::Options& options) {
   if (selected) {
-    render_camera(T_w_c_.matrix(), options.cam_weight, G_COLOR_SELECTED,
+    render_camera(T_w_i_.matrix(), options.cam_weight, G_COLOR_SELECTED,
                   options.cam_size * G_CAM_SELECTED_SCALE);
   } else {
-    render_camera(T_w_c_.matrix(), options.cam_weight, G_COLOR_CAMERA,
+    render_camera(T_w_i_.matrix(), options.cam_weight, G_COLOR_CAMERA,
                   options.cam_size);
   }
 }

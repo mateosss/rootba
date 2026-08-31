@@ -51,7 +51,7 @@ void log_summary(BaLog::ProblemInfo& log, const DatasetSummary& summary) {
 
   log.type = summary.type;
   log.input_path = summary.input_path;
-  log.num_cameras = summary.num_cameras;
+  log.num_keyframes = summary.num_keyframes;
   log.num_landmarks = summary.num_landmarks;
   log.num_observations = summary.num_observations;
   log.rcs_sparsity = summary.rcs_sparsity;

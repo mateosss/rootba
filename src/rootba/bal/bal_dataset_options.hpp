@@ -50,6 +50,9 @@ struct BalDatasetOptions : public VisitableOptions<BalDatasetOptions> {
   VISITABLE_META(DatasetType, input_type,
                  init(DatasetType::AUTO).help("type of dataset to load"));
 
+  VISITABLE_META(std::string, calibration_file,
+                 init("").help("calibration file to use"));
+
   VISITABLE_META(bool, save_output,
                  init(false).help("save optimization result"));
   VISITABLE_META(std::string, save_bal,
@@ -85,6 +88,14 @@ struct BalDatasetOptions : public VisitableOptions<BalDatasetOptions> {
       init(0).help(
           "Threshold for filtering observations that are too close "
           "to the camera after loading the problem. (0 means no filtering)"));
+
+  VISITABLE_META(
+      int, min_obs_per_kf,
+      init(0).help(
+          "Minimum number of observations required to keep a keyframe. "
+          "Keyframes with fewer observations are removed, along with their "
+          "observations. Landmarks with fewer than 2 remaining observations "
+          "are also removed. (0 means no filtering)"));
 
   VISITABLE_META(bool, quiet,
                  init(false).help(

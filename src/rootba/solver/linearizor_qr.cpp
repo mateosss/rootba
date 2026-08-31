@@ -55,7 +55,7 @@ LinearizorQR<Scalar_>::LinearizorQR(BalProblem<Scalar>& bal_problem,
                                     SolverSummary* summary)
     : LinearizorBase<Scalar>(bal_problem, options, summary) {
   // set options
-  typename LinearizationQR<Scalar, 9>::Options lqr_options;
+  typename LinearizationQR<Scalar, 6>::Options lqr_options;
 
   lqr_options.lb_options.use_householder =
       options_.use_householder_marginalization;
@@ -68,7 +68,7 @@ LinearizorQR<Scalar_>::LinearizorQR(BalProblem<Scalar>& bal_problem,
   lqr_options.lb_options.residual_options = options_.residual;
 
   // create linearization object
-  lqr_ = std::make_unique<LinearizationQR<Scalar, 9>>(bal_problem, lqr_options);
+  lqr_ = std::make_unique<LinearizationQR<Scalar, 6>>(bal_problem, lqr_options);
 }
 
 template <class Scalar_>
@@ -203,7 +203,7 @@ typename LinearizorQR<Scalar_>::VecX LinearizorQR<Scalar_>::solve(
   std::unique_ptr<Preconditioner<Scalar>> precond;
   {
     Timer timer;
-    const int num_cams = bal_problem_.num_cameras();
+    const int num_cams = bal_problem_.num_keyframes();
     const int pose_size = lqr_->POSE_SIZE;
     if (options_.preconditioner_type ==
         SolverOptions::PreconditionerType::JACOBI) {
@@ -280,10 +280,8 @@ Scalar_ LinearizorQR<Scalar_>::apply(VecX&& inc) {
   inc.array() *= pose_jacobian_scaling_.array();
 
   // update cameras
-  for (size_t i = 0; i < bal_problem_.cameras().size(); i++) {
-    bal_problem_.cameras()[i].apply_inc_pose(inc.template segment<6>(i * 9));
-    bal_problem_.cameras()[i].apply_inc_intrinsics(
-        inc.template segment<3>(i * 9 + 6));
+  for (size_t i = 0; i < bal_problem_.keyframes().size(); i++) {
+    bal_problem_.keyframes()[i].apply_inc_pose(inc.template segment<6>(i * 6));
   }
   IF_SET(it_summary_)->update_cameras_time_in_seconds = timer.elapsed();
 

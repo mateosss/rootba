@@ -18,7 +18,7 @@ solver_type = "SQUARE_ROOT"
 verbosity_level = 2
 debug = false
 num_threads = 0
-optimized_cost = "ERROR"
+optimized_cost = "ERROR_VALID"
 max_num_iterations = 20
 min_relative_decrease = 0.0
 initial_trust_region_radius = 10000.0
@@ -43,7 +43,7 @@ gradient_check_numeric_derivative_relative_step_size = 1e-06
 use_double = true
 use_householder_marginalization = true
 staged_execution = true
-reduction_alg = 1
+reduction_alg = 0
 power_order = 10
 initial_vee = 2.0
 vee_factor = 2.0
@@ -54,9 +54,5 @@ huber_parameter = 1.0
 
 [solver.log]
 log_path = "ba_log.json"
-save_log_flags = [
-"JSON",
-]
+save_log_flags = ["JSON"]
 disable_all = false
-
-

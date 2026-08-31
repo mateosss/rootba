@@ -42,7 +42,7 @@ namespace rootba {
 
 TEST(BalProblemIoImpl, Observation) {
   test_io_impl<BalProblem<double>::Observation>();
-  test_io_impl<BalProblem<double>::Camera>();
+  test_io_impl<BalProblem<double>::Keyframe>();
   test_io_impl<BalProblem<double>::Landmark>();
   test_io_impl<BalProblem<double>>();
 }

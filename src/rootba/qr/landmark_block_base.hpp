@@ -54,15 +54,17 @@ class LandmarkBlockBase : public LandmarkBlock<Scalar> {
   using VecX = Eigen::Matrix<Scalar, Eigen::Dynamic, 1>;
 
   using Mat36 = Eigen::Matrix<Scalar, 3, 6>;
+  using Mat66 = Eigen::Matrix<Scalar, 6, 6>;
 
   using MatX = Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic>;
   using RowMatX =
       Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
 
   using Landmark = typename BalProblem<Scalar>::Landmark;
-  using Camera = typename BalProblem<Scalar>::Camera;
   using Landmarks = typename BalProblem<Scalar>::Landmarks;
-  using Cameras = typename BalProblem<Scalar>::Cameras;
+  using Keyframe = typename BalProblem<Scalar>::Keyframe;
+  using Keyframes = typename BalProblem<Scalar>::Keyframes;
+  using Calibration = typename BalProblem<Scalar>::Calibration;
 
   void allocate_landmark(Landmark& lm, const Options& options) override;
 
@@ -70,7 +72,8 @@ class LandmarkBlockBase : public LandmarkBlock<Scalar> {
   // unusable. Numeric check is only performed for residuals that were
   // considered to be used (valid), which depends on
   // use_valid_projections_only setting.
-  void linearize_landmark(const Cameras& cameras) override;
+  void linearize_landmark(const Keyframes& keyframes,
+                          const Calibration& calib) override;
 
   void perform_qr() override;
 

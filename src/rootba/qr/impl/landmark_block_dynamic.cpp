@@ -41,10 +41,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace rootba {
 
 #ifdef ROOTBA_INSTANTIATIONS_FLOAT
+template class LandmarkBlockDynamic<float, 6>;
 template class LandmarkBlockDynamic<float, 9>;
 #endif
 
 #ifdef ROOTBA_INSTANTIATIONS_DOUBLE
+template class LandmarkBlockDynamic<double, 6>;
 template class LandmarkBlockDynamic<double, 9>;
 #endif
 

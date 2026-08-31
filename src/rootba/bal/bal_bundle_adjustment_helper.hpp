@@ -44,8 +44,6 @@ namespace rootba {
 template <typename Scalar>
 class BalBundleAdjustmentHelper {
  public:
-  using IntrinsicsT = basalt::BalCamera<Scalar>;
-
   static constexpr size_t POSE_SIZE = 6;
   static constexpr size_t INTRINSICS_SIZE = 3;
   static constexpr size_t CAMERA_SIZE = POSE_SIZE + INTRINSICS_SIZE;
@@ -78,10 +76,9 @@ class BalBundleAdjustmentHelper {
   // linearize one observation
   static bool linearize_point(const Vec2& obs, const Vec3& lm_p_w,
                               const SE3& cam_T_c_w,
-                              const basalt::BalCamera<Scalar>& intr,
+                              const basalt::GenericCamera<Scalar>& intr,
                               bool ignore_validity_check, VecR& res,
                               MatRP* d_res_d_xi = nullptr,
-                              MatRI* d_res_d_i = nullptr,
                               MatRL* d_res_d_l = nullptr);
 };
 

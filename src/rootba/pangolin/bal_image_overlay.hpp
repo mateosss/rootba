@@ -39,6 +39,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <pangolin/image/managed_image.h>
 
 #include "rootba/bal/bal_problem.hpp"
+#include "rootba/bal/common_types.hpp"
 
 namespace rootba {
 
@@ -71,8 +72,11 @@ class BalImageOverlay {
   Vec2d center_;         //!< center of image w/ border
   double scale_factor_;  //!< scale factor for image coordindates
 
-  std::vector<Vec2d> kpts_detected_;
-  std::vector<Vec2d> kpts_projected_;
+  // Per-camera keypoint data
+  std::map<CamId, std::vector<Vec2d>> kpts_detected_;
+  std::map<CamId, std::vector<Vec2d>> kpts_projected_;
+  std::map<CamId, Vec2d> image_sizes_;
+  std::map<CamId, Vec2d> centers_;
 };
 
 }  // namespace rootba

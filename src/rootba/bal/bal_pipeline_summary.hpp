@@ -52,7 +52,7 @@ struct DatasetSummary {
   std::string input_path;
 
   // basic problem info
-  int num_cameras = 0;
+  int num_keyframes = 0;
   int num_landmarks = 0;
   int num_observations = 0;
   double rcs_sparsity = 0;

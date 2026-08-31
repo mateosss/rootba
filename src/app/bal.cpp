@@ -38,7 +38,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "rootba/bal/ba_log_utils.hpp"
 #include "rootba/bal/bal_app_options.hpp"
-#include "rootba/ceres/bal_bundle_adjustment.hpp"
 #include "rootba/cli/bal_cli_utils.hpp"
 #include "rootba/solver/bal_bundle_adjustment.hpp"
 
@@ -62,63 +61,48 @@ int main(int argc, char** argv) {
     LOG(INFO) << "Options:\n" << options;
   }
 
-  if (options.solver.solver_type == SolverOptions::SolverType::CERES) {
-    DatasetSummary dataset_summary;
-    PipelineTimingSummary timing_summary;
-    BaLog log;
+  BalPipelineSummary summary;
 
-    // load data
-    BalProblem<double> bal_problem = load_normalized_bal_problem<double>(
-        options.dataset, &dataset_summary, &timing_summary);
-    log_summary(log.static_data.timing, timing_summary);
-
-    // run ceres solver (also updates `static_.timing`)
-    bundle_adjust_ceres(bal_problem, options.solver, &log);
-
-    // log summary (`static_.solver`, `static_.timing` and `iterations` are
-    // already filled)
-    log_summary(log.static_data.problem_info, dataset_summary);
-    log.save_json(options.solver.log);
-  } else {
-    BalPipelineSummary summary;
-
-    if (!options.solver.use_double) {
+  if (!options.solver.use_double) {
 #ifdef ROOTBA_INSTANTIATIONS_FLOAT
-      // load dataset
-      auto bal_problem = load_normalized_bal_problem<float>(
-          options.dataset, &summary.dataset, &summary.timing);
+    // load dataset
+    auto bal_problem = load_normalized_bal_problem<float>(
+        options.dataset, &summary.dataset, &summary.timing);
 
-      // run solver
-      bundle_adjust_manual(bal_problem, options.solver, &summary.solver,
-                           &summary.timing);
+    // run solver
+    bundle_adjust_manual(bal_problem, options.solver, &summary.solver,
+                         &summary.timing);
 
-      // postprocess
-      bal_problem.postprocress(options.dataset, &summary.timing);
+    bal_problem.save_euroc(options.dataset.output_optimized_path);
+
+    // postprocess
+    bal_problem.postprocress(options.dataset, &summary.timing);
 #else
-      LOG(FATAL) << "Compiled without float support.";
+    LOG(FATAL) << "Compiled without float support.";
 #endif
-    } else {
+  } else {
 #ifdef ROOTBA_INSTANTIATIONS_DOUBLE
-      // load dataset
-      auto bal_problem = load_normalized_bal_problem<double>(
-          options.dataset, &summary.dataset, &summary.timing);
+    // load dataset
+    auto bal_problem = load_normalized_bal_problem<double>(
+        options.dataset, &summary.dataset, &summary.timing);
 
-      // run solver
-      bundle_adjust_manual(bal_problem, options.solver, &summary.solver,
-                           &summary.timing);
+    // run solver
+    bundle_adjust_manual(bal_problem, options.solver, &summary.solver,
+                         &summary.timing);
 
-      // postprocess
-      bal_problem.postprocress(options.dataset, &summary.timing);
+    bal_problem.save_euroc(options.dataset.output_optimized_path);
+
+    // postprocess
+    bal_problem.postprocress(options.dataset, &summary.timing);
 #else
-      LOG(FATAL) << "Compiled without double support.";
+    LOG(FATAL) << "Compiled without double support.";
 #endif
-    }
-
-    // log summary
-    BaLog log;
-    log_summary(log, summary);
-    log.save_json(options.solver.log);
   }
+
+  // log summary
+  BaLog log;
+  log_summary(log, summary);
+  log.save_json(options.solver.log);
 
   return 0;
 }

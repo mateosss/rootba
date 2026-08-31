@@ -48,13 +48,37 @@ class LandmarkBlockDynamic
 
   inline void allocate_landmark_impl(Landmark& lm) {
     pose_idx_.clear();
-    pose_idx_.reserve(lm.obs.size());
-    for (const auto& [cam_idx, obs] : lm.obs) {
-      pose_idx_.push_back(cam_idx);
+    obs_to_kf_idx_.clear();
+
+    // Build a map from keyframe index to column index in Jacobian
+    std::map<FrameIdx, size_t> kf_to_col_idx;
+
+    pose_idx_.reserve(lm.obs.size());  // Upper bound
+    obs_to_kf_idx_.reserve(lm.obs.size());
+
+    for (const auto& [tcid, obs] : lm.obs) {
+      FrameIdx frame_idx = tcid.frame_id;
+
+      // Check if this keyframe is already in pose_idx_
+      auto it = kf_to_col_idx.find(frame_idx);
+      if (it == kf_to_col_idx.end()) {
+        // New keyframe, add it
+        size_t col_idx = pose_idx_.size();
+        pose_idx_.push_back(frame_idx);
+        kf_to_col_idx[frame_idx] = col_idx;
+        obs_to_kf_idx_.push_back(col_idx);
+      } else {
+        // Existing keyframe
+        obs_to_kf_idx_.push_back(it->second);
+      }
     }
 
-    padding_idx_ = pose_idx_.size() * POSE_SIZE;
-    num_rows_ = pose_idx_.size() * 2 + 3;  // residuals and lm damping
+    // Number of unique keyframes observing this landmark
+    size_t num_kfs = pose_idx_.size();
+
+    padding_idx_ = num_kfs * POSE_SIZE;
+    num_rows_ =
+        lm.obs.size() * 2 + 3;  // residuals (2 per obs) and lm damping (3)
 
     size_t pad = padding_idx_ % 4;
     if (pad != 0) {
@@ -74,6 +98,9 @@ class LandmarkBlockDynamic
   inline const std::vector<size_t>& get_pose_idx() const override {
     return pose_idx_;
   }
+  inline const std::vector<size_t>& get_obs_to_kf_idx() const {
+    return obs_to_kf_idx_;
+  }
   inline size_t get_padding_idx() const { return padding_idx_; }
   inline size_t get_padding_size() const { return padding_size_; }
   inline size_t get_lm_idx() const { return lm_idx_; }
@@ -88,7 +115,9 @@ class LandmarkBlockDynamic
   Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>
       storage_;
 
-  std::vector<size_t> pose_idx_;
+  std::vector<size_t> pose_idx_;  // Keyframe indices (FrameIdx)
+  std::vector<size_t>
+      obs_to_kf_idx_;  // Maps observation index to column index in J_p
   size_t padding_idx_ = 0;
   size_t padding_size_ = 0;
   size_t lm_idx_ = 0;

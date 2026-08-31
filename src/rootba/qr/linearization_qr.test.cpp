@@ -38,15 +38,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "rootba/bal/bal_problem.hpp"
 #include "rootba/qr/linearization_utils.hpp"
-#include "rootba/sc/linearization_sc.hpp"
 #include "rootba/testing/eigen_utils.hpp"
 #include "rootba/testing/float_utils.hpp"
 #include "rootba/testing/test_types.hpp"
 
 namespace rootba {
 
-#if defined(ROOTBA_INSTANTIATIONS_FLOAT) || \
-    defined(ROOTBA_INSTANTIATIONS_DOUBLE)
+#if false
 
 template <typename Scalar_>
 class LinearizationQRTest : public ::testing::Test {

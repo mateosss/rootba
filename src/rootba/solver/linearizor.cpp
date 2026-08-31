@@ -37,9 +37,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <magic_enum/magic_enum.hpp>
 
-#include "rootba/solver/linearizor_power_sc.hpp"
 #include "rootba/solver/linearizor_qr.hpp"
-#include "rootba/solver/linearizor_sc.hpp"
 #include "rootba/util/format.hpp"
 
 namespace rootba {
@@ -52,12 +50,6 @@ std::unique_ptr<Linearizor<Scalar_>> Linearizor<Scalar_>::create(
     case SolverOptions::SolverType::SQUARE_ROOT:
       return std::make_unique<LinearizorQR<Scalar>>(bal_problem, options,
                                                     summary);
-    case SolverOptions::SolverType::SCHUR_COMPLEMENT:
-      return std::make_unique<LinearizorSC<Scalar>>(bal_problem, options,
-                                                    summary);
-    case SolverOptions::SolverType::POWER_SCHUR_COMPLEMENT:
-      return std::make_unique<LinearizorPowerSC<Scalar>>(bal_problem, options,
-                                                         summary);
     default:
       LOG(FATAL) << "Invalid LinearizorType {}"_format(
           magic_enum::enum_name(options.solver_type));

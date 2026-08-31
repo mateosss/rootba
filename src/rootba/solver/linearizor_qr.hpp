@@ -48,7 +48,7 @@ class LinearizorQR : public LinearizorBase<Scalar_> {
  public:
   using Scalar = Scalar_;
   using Base = LinearizorBase<Scalar>;
-  constexpr static int POSE_SIZE = 9;
+  constexpr static int POSE_SIZE = 6;
 
   using VecX = Eigen::Matrix<Scalar, Eigen::Dynamic, 1>;
 

@@ -37,10 +37,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "rootba/qr/landmark_block_dynamic.hpp"
 
-#ifdef ROOTBA_INSTANTIATIONS_STATIC_LMB
-#include "rootba/qr/landmark_block_static.hpp"
-#endif
-
 namespace rootba {
 
 template <typename Scalar, int POSE_SIZE>
@@ -52,29 +48,6 @@ LandmarkBlockFactory<Scalar, POSE_SIZE>::get_landmark_block(size_t obs_size) {
     case 0:
     case 1:
       LOG(FATAL) << "landmark.obs.size() " << obs_size << " is not supported.";
-#ifdef ROOTBA_INSTANTIATIONS_STATIC_LMB
-    case 2:
-      lb.reset(new LandmarkBlockStatic<Scalar, POSE_SIZE, 2>);
-      break;
-    case 3:
-      lb.reset(new LandmarkBlockStatic<Scalar, POSE_SIZE, 3>);
-      break;
-    case 4:
-      lb.reset(new LandmarkBlockStatic<Scalar, POSE_SIZE, 4>);
-      break;
-    case 5:
-      lb.reset(new LandmarkBlockStatic<Scalar, POSE_SIZE, 5>);
-      break;
-    case 6:
-      lb.reset(new LandmarkBlockStatic<Scalar, POSE_SIZE, 6>);
-      break;
-    case 7:
-      lb.reset(new LandmarkBlockStatic<Scalar, POSE_SIZE, 7>);
-      break;
-    case 8:
-      lb.reset(new LandmarkBlockStatic<Scalar, POSE_SIZE, 8>);
-      break;
-#endif
     default:
       lb.reset(new LandmarkBlockDynamic<Scalar, POSE_SIZE>);
   }
@@ -83,10 +56,12 @@ LandmarkBlockFactory<Scalar, POSE_SIZE>::get_landmark_block(size_t obs_size) {
 }
 
 #ifdef ROOTBA_INSTANTIATIONS_FLOAT
+template class LandmarkBlockFactory<float, 6>;
 template class LandmarkBlockFactory<float, 9>;
 #endif
 
 #ifdef ROOTBA_INSTANTIATIONS_DOUBLE
+template class LandmarkBlockFactory<double, 6>;
 template class LandmarkBlockFactory<double, 9>;
 #endif
 

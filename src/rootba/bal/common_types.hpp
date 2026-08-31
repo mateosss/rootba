@@ -43,6 +43,30 @@ namespace rootba {
 
 using FrameIdx = int;
 using LandmarkIdx = int;
+using CamId = std::size_t;
+
+struct TimeCamId {
+  // TODO@tsantucci: rename to something like PoseCamId
+  TimeCamId() : frame_id(0), cam_id(0) {}
+
+  TimeCamId(const FrameIdx& frame_id, const CamId& cam_id)
+      : frame_id(frame_id), cam_id(cam_id) {}
+
+  FrameIdx frame_id;
+  CamId cam_id;
+
+  // Comparison operators for use in std::map
+  bool operator<(const TimeCamId& other) const {
+    if (frame_id != other.frame_id) return frame_id < other.frame_id;
+    return cam_id < other.cam_id;
+  }
+
+  bool operator==(const TimeCamId& other) const {
+    return frame_id == other.frame_id && cam_id == other.cam_id;
+  }
+
+  bool operator!=(const TimeCamId& other) const { return !(*this == other); }
+};
 
 static constexpr FrameIdx INVALID_FRAME_IDX = -1;
 static constexpr LandmarkIdx INVALID_LANDMARK_IDX = -1;

@@ -65,9 +65,4 @@ find_package(absl REQUIRED)
 # link to targets 'absl::...'
 message(STATUS "Found Abseil")
 
-find_package(Ceres REQUIRED)
-# link to target 'Ceres::ceres'
-
-
-
 message(STATUS "Done setting up dependencies")

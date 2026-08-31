@@ -35,6 +35,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 #include "rootba/bal/bal_bundle_adjustment_helper.hpp"
 
+#include <variant>
+
 #include <tbb/blocked_range.h>
 #include <tbb/parallel_reduce.h>
 
@@ -71,6 +73,9 @@ void BalBundleAdjustmentHelper<Scalar>::compute_error(
     ResidualInfo& error) {
   const bool ignore_validity_check = !options.use_projection_validity_check();
 
+  const auto& keyframes = bal_problem.keyframes();
+  const auto& calib = bal_problem.calib();
+
   // body for parallel reduce
   auto body = [&](const tbb::blocked_range<int>& range,
                   ResidualInfoAccu error_accu) {
@@ -78,21 +83,30 @@ void BalBundleAdjustmentHelper<Scalar>::compute_error(
       const int lm_id = r;
       const auto& lm = bal_problem.landmarks().at(lm_id);
 
-      for (const auto& [frame_id, obs] : lm.obs) {
-        const auto& cam = bal_problem.cameras().at(frame_id);
+      for (const auto& [tcid, obs] : lm.obs) {
+        FrameIdx frame_idx = tcid.frame_id;
+        CamId cam_id = tcid.cam_id;
+
+        const auto& keyframe = keyframes.at(frame_idx);
+        const auto& T_i_w = keyframe.T_i_w;
+
+        const auto& T_c_i = calib.T_i_c[cam_id].inverse();
+        const auto& cam_model = calib.intrinsics[cam_id];
+
+        // Compute transformation from world to camera frame
+        typename BalProblem<Scalar>::SE3 T_c_w = T_c_i * T_i_w;
 
         VecR res;
-        const bool projection_valid =
-            linearize_point(obs.pos, lm.p_w, cam.T_c_w, cam.intrinsics,
-                            ignore_validity_check, res);
+        const bool numerically_valid = linearize_point(
+            obs.pos, lm.p_w, T_c_w, cam_model, ignore_validity_check, res);
 
-        const bool numerically_valid = res.array().isFinite().all();
-
-        const Scalar res_squared = res.squaredNorm();
-        const auto [weighted_error, weight] =
-            compute_error_weight(options.residual, res_squared);
-        error_accu.add(numerically_valid, projection_valid,
-                       std::sqrt(res_squared), weighted_error);
+        if (numerically_valid) {
+          const Scalar res_squared = res.squaredNorm();
+          const auto [weighted_error, weight] =
+              compute_error_weight(options.residual, res_squared);
+          error_accu.add(numerically_valid, numerically_valid,
+                         std::sqrt(res_squared), weighted_error);
+        }
       }
     }
 
@@ -101,7 +115,7 @@ void BalBundleAdjustmentHelper<Scalar>::compute_error(
 
   // go over all host frames
   tbb::blocked_range<int> range(0, bal_problem.num_landmarks());
-  ResidualInfoAccu error_accu = tbb::parallel_reduce(
+  ResidualInfoAccu error_accu = tbb::parallel_deterministic_reduce(
       range, ResidualInfoAccu(), body, ResidualInfoAccu::join);
 
   // output accumulated error
@@ -111,22 +125,22 @@ void BalBundleAdjustmentHelper<Scalar>::compute_error(
 template <typename Scalar>
 bool BalBundleAdjustmentHelper<Scalar>::linearize_point(
     const Vec2& obs, const Vec3& lm_p_w, const SE3& T_c_w,
-    const basalt::BalCamera<Scalar>& intr, const bool ignore_validity_check,
-    VecR& res, MatRP* d_res_d_xi, MatRI* d_res_d_i, MatRL* d_res_d_l) {
+    const basalt::GenericCamera<Scalar>& intr, const bool ignore_validity_check,
+    VecR& res, MatRP* d_res_d_xi, MatRL* d_res_d_l) {
   Mat4 T_c_w_mat = T_c_w.matrix();
 
   Vec4 p_c_3d = T_c_w_mat * lm_p_w.homogeneous();
 
   Mat24 d_res_d_p;
   bool projection_valid;
-  if (d_res_d_xi || d_res_d_i || d_res_d_l) {
-    projection_valid = intr.project(p_c_3d, res, &d_res_d_p, d_res_d_i);
+  if (d_res_d_xi || d_res_d_l) {
+    projection_valid = intr.project(p_c_3d, res, &d_res_d_p);
   } else {
-    projection_valid = intr.project(p_c_3d, res, nullptr, nullptr);
+    projection_valid = intr.project(p_c_3d, res, nullptr);
   }
   res -= obs;
 
-  // valid &= res.array().isFinite().all();
+  projection_valid &= res.array().isFinite().all();
 
   if (!ignore_validity_check && !projection_valid) {
     return false;

@@ -216,7 +216,7 @@ class BlockSparseMatrix : public LinearOperator<Scalar> {
     // TODO: add proper size and pose size handling
     VecX identity = VecX::Zero(x.rows());
 
-    VecX res = tbb::parallel_reduce(range, identity, body, std::plus<VecX>());
+    VecX res = tbb::parallel_deterministic_reduce(range, identity, body, std::plus<VecX>());
     return res;
   }
 
@@ -242,7 +242,7 @@ class BlockSparseMatrix : public LinearOperator<Scalar> {
     // TODO: add proper size and pose size handling
     VecX identity = VecX::Zero(x.rows());
 
-    VecX res = tbb::parallel_reduce(range, identity, body, std::plus<VecX>());
+    VecX res = tbb::parallel_deterministic_reduce(range, identity, body, std::plus<VecX>());
     return res;
   }
 

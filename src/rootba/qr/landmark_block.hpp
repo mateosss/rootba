@@ -88,9 +88,10 @@ class LandmarkBlock {
   using RowMat3 = Eigen::Matrix<Scalar, 3, 3, Eigen::RowMajor>;
 
   using Landmark = typename BalProblem<Scalar>::Landmark;
-  using Camera = typename BalProblem<Scalar>::Camera;
   using Landmarks = typename BalProblem<Scalar>::Landmarks;
-  using Cameras = typename BalProblem<Scalar>::Cameras;
+  using Keyframe = typename BalProblem<Scalar>::Keyframe;
+  using Keyframes = typename BalProblem<Scalar>::Keyframes;
+  using Calibration = typename BalProblem<Scalar>::Calibration;
 
   virtual ~LandmarkBlock() = default;
 
@@ -101,7 +102,9 @@ class LandmarkBlock {
   // unusable. Numeric check is only performed for residuals that were
   // considered to be used (valid), which depends on
   // use_valid_projections_only setting.
-  virtual void linearize_landmark(const Cameras& cameras) = 0;
+  virtual void linearize_landmark(const Keyframes& keyframes,
+                                  const Calibration& calib) = 0;
+
   virtual void perform_qr() = 0;
 
   // Sets damping and maintains upper triangular matrix for landmarks.

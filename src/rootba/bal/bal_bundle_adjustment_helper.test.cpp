@@ -57,7 +57,6 @@ TYPED_TEST(BalBundleAdjustmentHelperTest, LinearizePoint) {
   using SE3 = Sophus::SE3<Scalar>;
   using Vec2 = Vec<Scalar, 2>;
   using Vec3 = Vec<Scalar, 3>;
-  using Vec6 = Vec<Scalar, 6>;
   using Mat26 = Mat<Scalar, 2, 6>;
   using Mat23 = Mat<Scalar, 2, 3>;
 
@@ -67,67 +66,32 @@ TYPED_TEST(BalBundleAdjustmentHelperTest, LinearizePoint) {
   Vec3 lm_p_w = Vec3::Random();
   lm_p_w.z() += 10;
 
-  const basalt::BalCamera<Scalar> intr =
+  const basalt::BalCamera<Scalar> intr_bal =
       basalt::BalCamera<Scalar>::getTestProjections()[0];
+  basalt::GenericCamera<Scalar> intr;
+  intr.variant = intr_bal;
   const SE3 T_c_w(SO3::exp(Vec3::Random() / 100), Vec3::Random());
 
   Vec2 obs;
-  intr.project((T_c_w * lm_p_w).homogeneous(), obs);
+  intr_bal.project((T_c_w * lm_p_w).homogeneous(), obs);
   Vec2 obs_noise = Vec2::Random();
   obs += obs_noise;
 
   Vec2 res;
   Mat26 d_res_d_xi;
-  Mat23 d_res_d_i;
   Mat23 d_res_d_l;
 
   bool ignore_validity_check = false;
 
   bool valid = BalBundleAdjustmentHelper<Scalar>::linearize_point(
       obs, lm_p_w, T_c_w, intr, ignore_validity_check, res, &d_res_d_xi,
-      &d_res_d_i, &d_res_d_l);
+      &d_res_d_l);
   EXPECT_TRUE(valid);
 
   EXPECT_TRUE(res.isApprox(-obs_noise, prec))
       << "res: " << res.transpose() << ", obs_noise: " << obs_noise
       << ", diff: " << (res + obs_noise).norm() << ", rel-diff: "
       << (res + obs_noise).norm() / std::max(res.norm(), obs_noise.norm());
-
-  {
-    Vec6 x0 = Vec6::Zero();
-    test_jacobian(
-        "d_res_d_xi", d_res_d_xi,
-        [&](const Vec6& x) {
-          SE3 T_c_w_new = T_c_w;
-          BalProblem<Scalar>::Camera::inc_pose(x, T_c_w_new);
-
-          Vec2 res;
-          bool valid = BalBundleAdjustmentHelper<Scalar>::linearize_point(
-              obs, lm_p_w, T_c_w_new, intr, ignore_validity_check, res);
-          EXPECT_TRUE(valid);
-
-          return res;
-        },
-        x0);
-  }
-
-  {
-    Vec3 x0 = Vec3::Zero();
-    test_jacobian(
-        "d_res_d_i", d_res_d_i,
-        [&](const Vec3& x) {
-          basalt::BalCamera<Scalar> intr_new = intr;
-          intr_new += x;
-
-          Vec2 res;
-          bool valid = BalBundleAdjustmentHelper<Scalar>::linearize_point(
-              obs, lm_p_w, T_c_w, intr_new, ignore_validity_check, res);
-          EXPECT_TRUE(valid);
-
-          return res;
-        },
-        x0);
-  }
 
   {
     Vec3 x0 = Vec3::Zero();

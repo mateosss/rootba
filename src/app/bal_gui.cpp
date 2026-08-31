@@ -34,13 +34,14 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 */
 
+#include <cstring>
+
 #include <glog/logging.h>
 #include <pangolin/display/image_view.h>
 #include <pangolin/pangolin.h>
 
 #include "rootba/bal/bal_app_options.hpp"
 #include "rootba/bal/bal_problem.hpp"
-#include "rootba/ceres/bal_bundle_adjustment.hpp"
 #include "rootba/cli/bal_cli_utils.hpp"
 #include "rootba/pangolin/bal_image_overlay.hpp"
 #include "rootba/pangolin/bal_map_display.hpp"
@@ -92,34 +93,37 @@ int main(int argc, char** argv) {
       LOG(INFO) << "Options:\n" << options;
     }
 
-    if (options.solver.solver_type == SolverOptions::SolverType::CERES) {
-      bundle_adjust_ceres(bal_problem, options.solver);
-    } else {
-      if (!options.solver.use_double) {
+    if (!options.solver.use_double) {
 #ifdef ROOTBA_INSTANTIATIONS_FLOAT
-        BalProblem<float> bal_problem_tmp = bal_problem.copy_cast<float>();
-        bundle_adjust_manual(bal_problem_tmp, options.solver);
-        bal_problem = bal_problem_tmp.copy_cast<double>();
+      BalProblem<float> bal_problem_tmp = bal_problem.copy_cast<float>();
+      bundle_adjust_manual(bal_problem_tmp, options.solver);
+      bal_problem = bal_problem_tmp.copy_cast<double>();
 #else
         LOG(FATAL) << "Compiled without float support.";
 #endif
-      } else {
+    } else {
 #ifdef ROOTBA_INSTANTIATIONS_DOUBLE
-        bundle_adjust_manual(bal_problem, options.solver);
+      bundle_adjust_manual(bal_problem, options.solver);
 #else
         LOG(FATAL) << "Compiled without double support.";
 #endif
-      }
     }
     bal_problem.postprocress(options.dataset);
     bal_state_changed = true;
   });
   pangolin::Var<int>::Attach("ui.max_num_iterations",
                              options.solver.max_num_iterations, 0, 100);
-  Button save_bal("ui.save_bal", [&]() {
-    std::string out = options.dataset.save_bal;
-    if (out.empty()) out = "output.bal.txt";
-    bal_problem.save_bal(out);
+  Button save_json("ui.save_json", [&]() {
+    bal_problem.save_basalt(options.dataset.output_optimized_path);
+  });
+  Button save_euroc("ui.save_euroc", [&]() {
+    bal_problem.save_euroc(options.dataset.output_optimized_path);
+  });
+
+  pangolin::Var<double> obs_noise_sigma("ui.obs_noise_sigma", 0, 0, 2);
+  Button add_noise("ui.add_noise", [&]() {
+    bal_problem.add_noise(obs_noise_sigma);
+    bal_state_changed = true;
   });
 
   pangolin::CreateWindowAndBind("BAL", 1800, 1000);
@@ -177,8 +181,8 @@ int main(int argc, char** argv) {
     if (show_frame.GuiChanged() || bal_state_changed) {
       // clip values
       show_frame.Meta().range[0] = 0;
-      show_frame.Meta().range[1] = bal_problem.num_cameras() - 1;
-      show_frame = std::min(show_frame.Get(), bal_problem.num_cameras() - 1);
+      show_frame.Meta().range[1] = bal_problem.num_keyframes() - 1;
+      show_frame = std::min(show_frame.Get(), bal_problem.num_keyframes() - 1);
       show_frame = std::max(show_frame.Get(), 0);
 
       update_image_overlay = true;

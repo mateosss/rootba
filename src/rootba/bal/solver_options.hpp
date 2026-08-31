@@ -264,7 +264,7 @@ struct SolverOptions : public VisitableOptions<SolverOptions> {
                                  "step (only QR solver)"));
 
   VISITABLE_META(int, reduction_alg,
-                 init(1).help("Reduction algorithm to use. "
+                 init(0).help("Reduction algorithm to use. "
                               "parallel_reduce: 0, parallel_for: 1"));
 
   VISITABLE_META(int, power_order,

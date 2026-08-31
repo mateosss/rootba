@@ -101,7 +101,7 @@ class BalFrameDisplay {
 
   const FrameIdx frame_id_;
 
-  SE3d T_w_c_;
+  SE3d T_w_i_;
 };
 
 }  // namespace rootba

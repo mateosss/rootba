@@ -158,7 +158,6 @@ BUILD_PANGOLIN=external/build$EXTERNAL_BUILD_DIR_SUFFIX/Pangolin
 BUILD_CEREAL=external/build$EXTERNAL_BUILD_DIR_SUFFIX/cereal
 BUILD_FMT=external/build$EXTERNAL_BUILD_DIR_SUFFIX/fmt
 BUILD_ABSEIL=external/build$EXTERNAL_BUILD_DIR_SUFFIX/abseil-cpp
-BUILD_CERES=external/build$EXTERNAL_BUILD_DIR_SUFFIX/ceres-solver
 
 COMMON_CMAKE_ARGS=(
     -DCMAKE_BUILD_TYPE=${BUILD_TYPE}
@@ -217,6 +216,7 @@ rm -rf "$BUILD_PANGOLIN"
 mkdir -p "$BUILD_PANGOLIN"
 pushd "$BUILD_PANGOLIN"
 cmake ../../Pangolin "${COMMON_CMAKE_ARGS[@]}" \
+    -DCMAKE_CXX_FLAGS="${EXTRA_CXX_FLAGS} -include cstdint" \
     -DCMAKE_FIND_FRAMEWORK=LAST \
     -DBUILD_EXAMPLES=OFF \
     -DBUILD_TOOLS=OFF \
@@ -269,24 +269,6 @@ mkdir -p "$BUILD_ABSEIL"
 pushd "$BUILD_ABSEIL"
 cmake ../../abseil-cpp "${COMMON_CMAKE_ARGS[@]}"
 make -j$NUM_PARALLEL_BUILDS
-make install
-popd
-fi
-
-##############################################
-## Ceres
-if true; then
-#if false; then
-rm -rf "$BUILD_CERES"
-mkdir -p "$BUILD_CERES"
-pushd "$BUILD_CERES"
-cmake ../../ceres-solver "${COMMON_CMAKE_ARGS[@]}" \
-    -DBUILD_EXAMPLES=OFF \
-    -DBUILD_TESTING=OFF \
-    -DBUILD_BENCHMARKS=OFF \
-    -DEXPORT_BUILD_DIR=OFF \
-    -DCXSPARSE=OFF
-make -j$NUM_PARALLEL_BUILDS ceres
 make install
 popd
 fi

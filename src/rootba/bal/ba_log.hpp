@@ -35,9 +35,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 #pragma once
 
+#include <cstdint>
 #include <string>
 #include <vector>
-#include <cstdint>
 
 #include <visit_struct/visit_struct_intrusive.hpp>
 
@@ -71,7 +71,7 @@ struct BaLog {
     VISITABLE(std::string, input_path);
 
     // map stats
-    VISITABLE_INIT(int, num_cameras, 0);
+    VISITABLE_INIT(int, num_keyframes, 0);
     VISITABLE_INIT(int, num_landmarks, 0);
     VISITABLE_INIT(int, num_observations, 0);
     VISITABLE_INIT(double, rcs_sparsity, 0);

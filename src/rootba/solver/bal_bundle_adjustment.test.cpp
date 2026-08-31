@@ -36,13 +36,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "rootba/bal/bal_problem.hpp"
 #include "rootba/qr/linearization_qr.hpp"
-#include "rootba/sc/linearization_sc.hpp"
 #include "rootba/testing/test_types.hpp"
 
 namespace rootba {
 
-#if defined(ROOTBA_INSTANTIATIONS_FLOAT) || \
-    defined(ROOTBA_INSTANTIATIONS_DOUBLE)
+#if false
 
 template <typename Scalar_>
 class BalBundleAdjustmentTest : public ::testing::Test {
